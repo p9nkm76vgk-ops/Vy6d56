@@ -498,7 +498,7 @@ function addDays(s,n){const d=parse(s);d.setDate(d.getDate()+n);return iso(d)}
 const daysBetween=(a,b)=>Math.round((parse(b)-parse(a))/864e5);
 const dow=s=>(parse(s).getDay()+6)%7;
 const weekStartOf=s=>addDays(s,-dow(s));
-function defaults(){return{v:3,updated:0,settings:{start:todayISO(),exam:false,voice:true,dur:60},dur:{},swap:{},noauto:{},maint:[],tests:{},pull:{},checkin:{},vol:{},volLog:{},pr:{},prlog:{},repSeen:{},ui:{},prog:{},run:{lv:1},logs:{},short:{},tired:{},equip:{dominadas:false,anillas:false,cargables:false,chaleco:false},forced:[],anchor:null,evald:{},live:null}}
+function defaults(){return{v:3,updated:0,settings:{start:todayISO(),exam:false,voice:true,dur:60,hora:"17:00"},dur:{},swap:{},noauto:{},maint:[],tests:{},pull:{},checkin:{},vol:{},volLog:{},pr:{},prlog:{},repSeen:{},ui:{},prog:{},run:{lv:1},logs:{},short:{},tired:{},equip:{dominadas:false,anillas:false,cargables:false,chaleco:false},forced:[],anchor:null,evald:{},live:null}}
 function migrate(s){
   if((s.v||0)<4){
     if(s.settings&&s.settings.start>="2026-10-26"&&s.settings.start<"2026-11-02")s.settings.start="2026-11-02";
@@ -507,10 +507,16 @@ function migrate(s){
     if(s.settings)s.settings.exam=false;
     s.v=4;
   }
+  if((s.v||0)<5){
+    /* Horario unificado con Focus OS: 1 hora a las 17:00; semana de exámenes 30 min (17:00–17:30) */
+    if(s.settings){s.settings.dur=60;s.settings.hora=s.settings.hora||"17:00"}
+    if(s.short){const t=todayISO();Object.keys(s.short).forEach(k=>{if(k>=t)delete s.short[k]})}
+    s.v=5;
+  }
   return s;
 }
 function normalize(o){const d=defaults();const s=Object.assign(d,o||{});s.settings=Object.assign(defaults().settings,s.settings||{});["prog","run","logs","short","tired","evald","equip","dur","swap","noauto","tests","pull","checkin","vol","volLog","pr","prlog","repSeen","ui"].forEach(k=>{if(!s[k]||typeof s[k]!=="object")s[k]=d[k]});if(!Array.isArray(s.forced))s.forced=[];if(!Array.isArray(s.maint))s.maint=[];return migrate(s)}
-let S=defaults(), sync="local", dbRef=null;
+let S=normalize(null), sync="local", dbRef=null;
 try{const raw=localStorage.getItem(KEY);if(raw)S=normalize(JSON.parse(raw))}catch(e){}
 let tab="hoy", viewDate=todayISO(), saveT=null;
 function save(){
@@ -547,6 +553,10 @@ function evaluateWeeks(){
 /* ============ Sesión ============ */
 function prog(id){const e=EX[id],p=S.prog[id]||{};const vi=Math.min(p.vi||0,e.v.length-1);return{t:p.t??e.r[0],vi,last:p.last||null,maxed:!!p.maxed}}
 function exName(e,vi){const v=e.v[vi];return v?e.n+" · "+v:e.n}
+function horaIni(){const m=/^(\d{1,2}):(\d{2})$/.exec(S.settings.hora||"17:00");return m?+m[1]*60+ +m[2]:1020}
+function hhmm(m){m=((m%1440)+1440)%1440;return String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0")}
+function franja(date){const a=horaIni();return hhmm(a)+"–"+hhmm(a+durOf(date))}
+function cuandoTxt(date){if(date!==todayISO())return"";const n=new Date(),nm=n.getHours()*60+n.getMinutes(),a=horaIni(),b=a+durOf(date);if(nm<a-1){const r=a-nm;return"Empieza en "+(r>=60?Math.floor(r/60)+" h "+(r%60?r%60+" min":""):r+" min")}if(nm<b)return"Es la hora: dale a empezar";return""}
 function durOf(date){return phaseOf(date).k==="mant"?30:(S.dur[date]||(S.short&&S.short[date]?30:0)||S.settings.dur||60)}
 function isShort(date){return durOf(date)<=30}
 function runLevel(){return Math.max(1,Math.min(RUN.length,Math.floor(S.run.lv)))}
@@ -1049,8 +1059,9 @@ function vHoy(){
    <div class="sess">
      <div class="topbar"><div class="eyebrow">${isToday?"Hoy · ":""}${fmtDate(d)}</div><span class="chip acc">${ph.n}${ph.k.startsWith("vuelta")?" "+ph.w+"/2":""}</span></div>
      <div><h1>${esc(ses.day.n)}</h1><p class="sub">${esc(ses.day.s)}</p></div>
-     <div class="topbar" style="align-items:flex-end"><div class="dur num">${ses.min}<small>min</small></div><div class="meta" style="justify-content:flex-end"><span class="chip">Semana ${cs.now}/5</span>${ph.k==="mant"?`<span class="chip warn">Semana de exámenes</span>`:""}</div></div>
+     <div class="topbar" style="align-items:flex-end"><div class="dur num">${ses.min}<small>min</small></div><div class="meta" style="justify-content:flex-end"><span class="chip acc">${franja(d)}</span><span class="chip">Semana ${cs.now}/5</span>${ph.k==="mant"?`<span class="chip warn">Semana de exámenes</span>`:""}</div></div>
      ${ph.k==="mant"||future||log?"":`<div class="seg" role="group" aria-label="Duración">${[30,45,60].map(m=>`<button data-min="${m}" aria-pressed="${durOf(d)===m}">${m} min</button>`).join("")}</div>`}
+     ${!log&&cuandoTxt(d)?`<div class="thin" style="text-align:center">${cuandoTxt(d)}</div>`:""}
      ${action}
    </div>
    ${notes.map(n=>`<div class="note">${n}</div>`).join("")}
@@ -1063,7 +1074,7 @@ function vHoy(){
 function vPlan(){
   const t=todayISO(),ws=weekStartOf(t),ph=phaseOf(t);
   const rows=[0,1,2,3,4,5,6].map(i=>{const d=addDays(ws,i),day=dayFor(d),l=S.logs[d];
-    return`<button class="day${d===t?" today":""}" data-day="${d}"><div class="d">${DAYS[i]}<span class="num">${parse(d).getDate()}</span></div><div style="min-width:0"><div class="row-n">${esc(day.n)}${intBars(day.int)}</div><div class="row-c">${esc(day.s)}</div></div><div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--fg2)">${l?(l.st==="done"?"Hecho":"Descanso"):d===t?"Hoy":""}<span class="dot ${l&&l.st==="done"?"ok":""}"></span></div></button>`}).join("");
+    return`<button class="day${d===t?" today":""}" data-day="${d}"><div class="d">${DAYS[i]}<span class="num">${parse(d).getDate()}</span></div><div style="min-width:0"><div class="row-n">${esc(day.n)}${intBars(day.int)}</div><div class="row-c">${franja(d)} · ${esc(day.s)}</div></div><div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--fg2)">${l?(l.st==="done"?"Hecho":"Descanso"):d===t?"Hoy":""}<span class="dot ${l&&l.st==="done"?"ok":""}"></span></div></button>`}).join("");
   const cyc=ph.k.startsWith("vuelta")?`<div class="card"><h2>Reintroducción</h2><p class="sub">Semana ${ph.w} de 2. Después vienen bloques de 4 semanas: acumulación, intensificación, pico y descarga.</p></div>`:`<div class="card"><h2>Bloque ${ph.block||"de descarga"}</h2><div class="cycle">${CYCLE.map(k=>`<div class="${k===ph.k?"now":""}"><b>${PHASES[k].n}</b>RIR ${PHASES[k].rc}</div>`).join("")}</div></div>`;
   const vol=Object.entries(S.vol).filter(([,v])=>v);
   const syncTxt={cloud:"Sincronizado con tu cuenta: mismos datos en el móvil y en el iPad.",local:"Guardado solo en este dispositivo.",error:"No se pudo guardar en tu cuenta. Los datos siguen en este dispositivo."}[sync];
@@ -1076,7 +1087,8 @@ function vPlan(){
    ${vol.length?`<div class="note"><b>Volumen ajustado a tus sensaciones:</b> ${vol.map(([g,v])=>GROUP_TXT[g]+" "+(v>0?"+":"")+v+" serie"+(Math.abs(v)>1?"s":"")).join(" · ")}. Se recalcula cada lunes.</div>`:""}
    <div class="card"><h2>Abdomen marcado</h2><p class="sub" style="font-size:14px">Que se marque depende sobre todo de la grasa corporal: los abdominales no queman la grasa de encima. El plan hace crecer el abdomen con carga (rueda, dragon flag, crunch con banda); el resto lo pone la comida: <b>proteína 1,6–2,2 g por kg</b> al día, un déficit suave (perder como máximo un 0,5 % del peso a la semana) solo si te sobra grasa, comer normal en exámenes y <b>dormir 8–10 h</b>. Nada de dietas extremas; si quieres bajar mucho de peso, mejor con tu médico o un dietista-nutricionista.</p></div>
    <h2 class="section-t">Ajustes</h2>
-   <div class="card"><div class="field"><h3>Duración por defecto</h3><div class="seg" role="group">${[30,45,60].map(m=>`<button data-defmin="${m}" aria-pressed="${(S.settings.dur||60)===m}">${m} min</button>`).join("")}</div><p class="sub" style="font-size:13px">La sesión dura exactamente eso.</p></div></div>
+   <div class="card"><div class="field"><h3>Duración por defecto</h3><div class="seg" role="group">${[30,45,60].map(m=>`<button data-defmin="${m}" aria-pressed="${(S.settings.dur||60)===m}">${m} min</button>`).join("")}</div><p class="sub" style="font-size:13px">La sesión dura exactamente eso.</p></div>
+     <div class="field" style="margin-top:14px"><h3>Hora del entreno</h3><input type="time" data-hora value="${esc(S.settings.hora||"17:00")}" style="font:inherit;font-size:17px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--s2);color:var(--fg)"><p class="sub" style="font-size:13px">Igual que en Focus OS: cada día de ${hhmm(horaIni())} a ${hhmm(horaIni()+60)} (1 hora). En la semana de exámenes, 30 min y la otra media hora es para estudiar. Focus OS te avisa 10 min antes si importas su calendario.</p></div></div>
    <div class="card"><div class="toggle"><div><h3>Esta semana es de exámenes</h3><p class="sub" style="font-size:13px">Mantenimiento: lunes, miércoles y viernes 30 min de cuerpo completo; el resto, paseo. No cuenta como semana del plan.</p></div><button class="switch" data-act="maint" aria-pressed="${(S.maint||[]).includes(ws)}" aria-label="Semana de exámenes"></button></div>
      <div class="toggle"><div><h3>Voz</h3><p class="sub" style="font-size:13px">Repeticiones, descansos y lo que viene.</p></div>${sw("voice",S.settings.voice)}</div></div>
    <div class="card"><h3>Tu material</h3>
@@ -1668,7 +1680,7 @@ document.addEventListener("click",e=>{
   if(act==="reset"){S=defaults();save();render()}
 });
 document.addEventListener("input",e=>{const t=e.target;if(t.dataset&&t.dataset.ld&&SV)SV.ld[t.dataset.ld]=t.value});
-document.addEventListener("change",e=>{if(e.target.id==="start"&&e.target.value){S.settings.start=e.target.value;save();render()}});
+document.addEventListener("change",e=>{if(e.target.id==="start"&&e.target.value){S.settings.start=e.target.value;save();render()}if(e.target.dataset&&"hora" in e.target.dataset&&/^\d{1,2}:\d{2}$/.test(e.target.value)){S.settings.hora=e.target.value;save();render()}});
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!G)closeSheet()});
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&G){keepAwake();if(actx&&actx.state==="suspended")actx.resume()}});
 
