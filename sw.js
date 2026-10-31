@@ -1,6 +1,6 @@
 /* Entreno OS: funciona sin conexión. Primero la red (para recibir mejoras) y, si no hay, la copia guardada. */
-const CACHE="entreno-v4";
-const SHELL=["./","index.html","manifest.json","icon-180.png","icon-192.png","icon-512.png","three.min.js"];
+const CACHE="entreno-v5";
+const SHELL=["./","index.html","manifest.json","icon-180.png","icon-192.png","icon-512.png","three.min.js","fonts/fonts.css","fonts/Anton-Regular.ttf","fonts/InterTight.ttf","fonts/BarlowCondensed-SemiBold.ttf","fonts/BarlowCondensed-Bold.ttf","fonts/BarlowCondensed-ExtraBold.ttf"];
 self.addEventListener("install",e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()))});
 self.addEventListener("activate",e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener("fetch",e=>{
