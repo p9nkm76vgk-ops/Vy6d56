@@ -311,10 +311,10 @@ h2{font-family:var(--f-dsp);font-weight:400;font-size:26px;letter-spacing:.02em}
 .sess{position:relative;overflow:hidden;background:radial-gradient(90% 70% at 85% 30%,rgba(255,79,26,.28),transparent 62%),linear-gradient(180deg,#121214,#050505);border:0;border-radius:26px;padding:22px 20px 20px;min-height:430px;isolation:isolate}
 .sess .hero{position:absolute;right:-34px;top:34px;width:300px;height:340px;object-fit:contain;z-index:-1;opacity:.96;pointer-events:none;filter:drop-shadow(0 30px 40px rgba(0,0,0,.6))}
 .sess::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,.72) 0%,rgba(0,0,0,.25) 55%,transparent 100%);z-index:-1;pointer-events:none}
-.sess h1{font-size:76px;max-width:64%;overflow-wrap:normal}
+.sess h1{font-size:76px;overflow-wrap:normal}
 .sess .chip{background:#1B1B1E;position:relative}.sess .chip.acc{background:#2A1209}.sess .chip.warn{background:#2A2109}
-.sess .kick{font-family:var(--f-dsp);font-size:15px;max-width:60%;letter-spacing:.14em;color:var(--acc);text-transform:uppercase}
-.sess .sub{max-width:62%}
+.sess .kick{font-family:var(--f-dsp);font-size:15px;letter-spacing:.14em;color:var(--acc);text-transform:uppercase}
+.sess{min-height:0}
 .sess .dur{font-family:var(--f-dsp);font-weight:400;font-size:76px}
 .mantra{border-radius:20px;padding:20px;background:#fff;color:#000;display:flex;flex-direction:column;gap:6px}
 .mantra small{font-weight:800;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#6a6a70}
@@ -322,6 +322,7 @@ h2{font-family:var(--f-dsp);font-weight:400;font-size:26px;letter-spacing:.02em}
 .section-t,.block-h h2{font-family:var(--f-dsp);font-weight:400}
 .row-n{font-weight:700}
 .thumb{background:#141416;border-radius:14px}
+.thumb .tag{font-family:var(--f-dsp);font-size:15px;letter-spacing:.06em;color:#fff}
 .go{background:#000}
 @media (max-width:420px){h1{font-size:56px}.sess h1{font-size:60px}.sess .dur{font-size:64px}.sess .hero{width:250px;height:300px;right:-40px}}
 
@@ -1096,9 +1097,11 @@ function f3Thumb(arch,pos,flip){
   if(!F3.thumbR){F3.thumbR=F3.mkR(true);F3.thumbR.setPixelRatio(1);F3.thumbR.setSize(160,160,false)}
   f3Draw(F3.thumbR,arch,pos,flip);return F3.thumbs[key]=F3.thumbR.domElement.toDataURL("image/png");
 }
-function heroImg(ses){if(!F3.ok)return"";const it=(ses.items||[]).find(i=>i.id&&!i.seq&&!i.run&&!i.mob);let a="run",f=0;if(it){[a,f]=archOf(it.id)}else if(ses.items&&ses.items[0]&&ses.items[0].seq){const q=ses.items[0].seq[0];a=q[0]==="int"?q[5]:q[2]}
+function heroImg(ses){return"";const it=(ses.items||[]).find(i=>i.id&&!i.seq&&!i.run&&!i.mob);let a="run",f=0;if(it){[a,f]=archOf(it.id)}else if(ses.items&&ses.items[0]&&ses.items[0].seq){const q=ses.items[0].seq[0];a=q[0]==="int"?q[5]:q[2]}
   try{const k="hero|"+a;if(!F3.thumbs[k]){if(!F3.heroR){F3.heroR=F3.mkR(true);F3.heroR.setPixelRatio(1);F3.heroR.setSize(600,680,false)}f3Draw(F3.heroR,a,.55,f);F3.thumbs[k]=F3.heroR.domElement.toDataURL("image/png")}return`<img class="hero" alt="" src="${F3.thumbs[k]}">`}catch(e){return""}}
-function figThumb(arch,pos,flip){if(F3.ok){try{return`<img class="fx fx3" alt="" src="${f3Thumb(arch,pos,flip)}">`}catch(e){}}return figSVG(arch,pos,flip)}
+const TAGS=[["PIE","squat lunge hinge calf bridge nordic slide squatdeep"],["POT","jump skip climber swing"],["PEC","pushup floorpress dip"],["HOM","pushV lateral facepull pressfwd"],["ESP","pullV row invrow seatrow"],["BÍC","curl"],["TRÍ","triext pushdown"],["ABS","rollout crunch legraise plank sideplank hundred rollup legcircle ball singleleg scissor teaser"],["RUN","run"],["CAM","walk stroll carry"],["BOX","boxer"]];
+function figTag(arch){arch=FIGALIAS[arch]||arch;for(const[t,l]of TAGS)if(l.split(" ").includes(arch))return t;return"FLX"}
+function figThumb(arch,pos,flip){return`<span class="tag">${figTag(arch)}</span>`;if(F3.ok){try{return`<img class="fx fx3" alt="" src="${f3Thumb(arch,pos,flip)}">`}catch(e){}}return figSVG(arch,pos,flip)}
 function figLive(arch,pos,flip){return F3.ok?"":figSVG(arch,pos,flip)}
 
 
@@ -1379,7 +1382,6 @@ function sheetEx(id,orig){ensureEx(id);orig=orig||id;
   const ladder=e.v.length>1?`<dt>Variantes</dt><dd>${e.v.map((v,j)=>`<span style="${j===p.vi?"color:var(--accent)":j<p.vi?"color:var(--muted);text-decoration:line-through":"color:var(--muted);font-weight:500"}">${esc(v||"básica")}</span>`).join(" → ")}</dd>`:"";
   $("#layer").innerHTML=`<div class="scrim" data-close><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-t">
    <div class="eyebrow">Rango ${e.r[0]}${e.r[0]!==e.r[1]?"–"+e.r[1]:""} ${unitShort(e)}${e.rest?" · descanso "+e.rest+" s":""}</div>
-   <div class="sheet-fig">${thumbFig(id)}</div>
    <h2 id="sh-t" style="font-size:30px">${esc(exName(e,p.vi))}</h2><p style="margin:0">${esc(e.c)}</p>
    <dl class="kv"><dt>Objetivo</dt><dd>${p.t} ${unitTxt(e)}${rir?" · RIR "+rir:" · calidad máxima, sin fatiga"}</dd>${e.tp?`<dt>Tempo ${e.tp}</dt><dd>${tempoTxt(e.tp)}</dd>`:""}${tech?`<dt>Técnica</dt><dd>${esc(tech)}</dd>`:""}${p.last?`<dt>La última vez</dt><dd>${p.last.t} · ${RATE_TXT[p.last.r]}</dd>`:""}${ladder}</dl>
    <div class="field"><label for="load" class="eyebrow">Peso o banda que usas</label><input type="text" id="load" value="${esc((S.prog[id]&&S.prog[id].load)||e.load)}">${S.prog[id]&&S.prog[id].kg?`<span class="sub" style="font-size:13px">Más ${kgTxt(S.prog[id].kg)} kg ganados con la progresión.</span>`:""}</div>
@@ -1700,6 +1702,7 @@ function drawGo(){
   G.fig=null;G.lastPos=null;
   if(s.arch)G.fig={a:s.arch,f:0};
   else if(fx){const[a,f]=archOf(fx.id);G.fig={a,f}}else if(s.ph==="run")G.fig={a:"run",f:0};else if(s.ph==="walk")G.fig={a:"stroll",f:0};
+  G.fig=null;
   const fill=setFill(s,el),center=G.fig&&(tempo||s.ph==="hold");if(s.ph==="switch"&&s.seqn)G.fig=null;
   let ticks="";
   if(tempo&&s.reps&&s.reps<=30)for(let k=0;k<s.reps;k++){const a=k/s.reps*2*Math.PI-Math.PI/2,c=Math.cos(a),sn=Math.sin(a);ticks+=`<line class="tk${k<s.rep-1?" done":k===s.rep-1?" cur":""}" x1="${(150+141*c).toFixed(1)}" y1="${(150+141*sn).toFixed(1)}" x2="${(150+147*c).toFixed(1)}" y2="${(150+147*sn).toFixed(1)}"/>`}
@@ -1925,7 +1928,6 @@ document.addEventListener("visibilitychange",()=>{if(document.visibilityState===
 
 evaluateWeeks();
 render();
-f3Load();
 
 /* ============ Sincronización con la cuenta ============ */
 (async()=>{
