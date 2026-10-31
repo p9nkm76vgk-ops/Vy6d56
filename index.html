@@ -389,6 +389,15 @@ const WARMS={
  sup:["2 min de cinta subiendo el ritmo","Rotación externa con banda 2 × 15","15 aperturas con banda","Hollow 2 × 20 s","8 flexiones fáciles","1–2 series de aproximación del primer ejercicio"],
  run:["3 min andando rápido","Skipping A 2 × 15 s","8 zancadas caminando","10 balanceos de pierna por lado","2 aceleraciones progresivas"],
 };
+/* Calentamiento y vuelta a la calma guiados: cada paso dura exactamente lo que dice.
+   La versión corta (sesiones de 30 min) usa solo los pasos marcados con 1 al final. */
+const WARMSEQ={
+ inf:[["Cinta subiendo el ritmo · 2 min",120,"run",0,"",1],["Tobillo: rodilla a la pared · 10 por lado",30,"lunge",1,"c"],["Cadera 90/90 · 30 s por lado",30,"pigeon",1,""],["Sentadilla sin peso con pausa · 10",45,"squat",0,"c",1],["Saltos suaves · 3",15,"jump",0,"c",1],["Serie de aproximación del primer ejercicio, ligera",45,"lunge",0,"c",1]],
+ sup:[["Cinta subiendo el ritmo · 2 min",120,"run",0,"",1],["int","Rotación externa con banda · 15",30,10,2,"facepull"],["Aperturas con banda · 15",40,"lateral",0,"c",1],["int","Hollow · 20 s",20,10,2,"hundred"],["Flexiones fáciles · 8",30,"pushup",0,"c",1],["Serie de aproximación del primer ejercicio, ligera",45,"pushV",0,"c",1]],
+ run:[["Andar rápido · 3 min",180,"stroll",0,"",1],["int","Skipping A · 15 s",15,15,2,"skip",1],["Zancadas caminando · 8",40,"lunge",0,"c"],["Balanceos de pierna · 10 por lado",20,"swing",1,"c"],["int","Aceleración progresiva",15,30,2,"run",1]],
+ calma:[["Siéntate cómodo y respira: 4 s dentro, 6 fuera",60,"butterfly",0,"",1],["Hombros y cuello en círculos lentos",60,"spine",0,"c",1]],
+};
+const COOLSEQ=[["Estiramiento de flexores de cadera · 45 s por lado",45,"lizard",1,""],["Estiramiento de pectoral en el marco de la puerta · 45 s por lado",45,"warrior2",1,""],["Postura del niño · 1 min",60,"child",0,""],["Respiración nasal lenta",60,"savasana",0,""]];
 const COOL=["Flexores de cadera 45 s por lado","Pectoral en el marco de la puerta 45 s","Postura del niño 1 min","Respiración nasal lenta 1 min"];
 
 /* Semana. long = 60 min · short = 30 min (prioridad + hombro/brazo, aislamiento en myo-reps) */
@@ -1046,7 +1055,7 @@ function vHoy(){
    </div>
    ${notes.map(n=>`<div class="note">${n}</div>`).join("")}
    <div class="block"><div class="block-h"><h2>La sesión</h2><span class="eyebrow">A1 + A2 = superserie</span></div>
-     <div class="thin">Calentamiento · ${WARMS[ses.day.w].slice(0,3).join(" · ")}</div>
+     <div class="thin">Calentamiento guiado · ${(WARMSEQ[ses.day.w]||WARMSEQ.sup).filter(e=>!ses.short||e[e.length-1]===1).slice(0,3).map(e=>(e[0]==="int"?e[1]:e[0]).split(" · ")[0]).join(" · ")}</div>
      ${ses.items.map(itemRow).join("")}
      <div class="thin">Vuelta a la calma y movilidad hasta completar ${ses.min} min exactos</div></div>
   </section>`;
@@ -1199,12 +1208,18 @@ function setSegs(i,s){
 function buildTimeline(ses,dry){
   const T=[];let grp=0;const rs=ses.runScale||1;
   const push=o=>T.push(Object.assign({grp},o));
-  const wl=WARMS[ses.day.w],ws=Math.round((ses.day.w==="calma"?120:ses.short?180:300)/wl.length);
-  wl.forEach(x=>{push({ph:"list",d:ws,big:"Calentamiento",txt:x,cd:true});grp++});
+  const pushEls=(els,seqn,extra)=>els.forEach(e=>{
+      if(e[0]==="int"){const[,nm,w,r,n,a]=e;for(let k=1;k<=n;k++){push(Object.assign({ph:"hold",d:w,big:"¡Fuerte!",title:nm,arch:a,anim:1,sub:"Ronda "+k+" de "+n,cd:true,seqn},extra));if(k<n)push(Object.assign({ph:"rest",mini:true,d:r,big:"Descansa",txt:"Siguiente ronda",cd:true,seqn},extra))}grp++;return}
+      const[nm,d,a,sides,m]=e,base=Object.assign({ph:"hold",d,big:m?"Muévete":"Mantén",title:nm,arch:a,anim:!!m,cd:true,seqn},extra);
+      if(sides){push(Object.assign({},base,{label:"Lado derecho"}));push(Object.assign({ph:"switch",d:6,big:"Cambia de lado",cd:true,seqn},extra));push(Object.assign({},base,{label:"Lado izquierdo"}))}else push(base);
+      grp++});
+  const warm=(WARMSEQ[ses.day.w]||WARMSEQ.sup).filter(e=>!ses.short||e[e.length-1]===1||e[6]===1);
+  pushEls(warm,"Calentamiento",{warm:true});
   const groups=[];ses.items.forEach(i=>{const last=groups[groups.length-1];if(i.g&&last&&last.g===i.g&&!last.solo)last.items.push(i);else groups.push({g:i.g,solo:!i.g,items:[i]})});
   groups.forEach((gr,gi)=>{
     const i0=gr.items[0];
-    if(i0.seq){i0.seq.forEach(e=>{
+    if(i0.seq){pushEls(i0.seq,i0.name);return}
+    if(false){i0.seq.forEach(e=>{
       if(e[0]==="int"){const[,nm,w,r,n,a]=e;for(let k=1;k<=n;k++){push({ph:"hold",d:w,big:"¡Fuerte!",title:nm,arch:a,anim:1,sub:"Ronda "+k+" de "+n,cd:true,seqn:i0.name});if(k<n)push({ph:"rest",mini:true,d:r,big:"Descansa",txt:"Siguiente ronda",cd:true,seqn:i0.name})}grp++;return}
       const[nm,d,a,sides,m]=e,base={ph:"hold",d,big:m?"Muévete":"Mantén",title:nm,arch:a,anim:!!m,cd:true,seqn:i0.name};
       if(sides){push(Object.assign({},base,{label:"Lado derecho"}));push({ph:"switch",d:6,big:"Cambia de lado",cd:true,seqn:i0.name});push(Object.assign({},base,{label:"Lado izquierdo"}))}else push(base);
@@ -1232,13 +1247,13 @@ function buildTimeline(ses,dry){
       push({ph:"rest",d:nextIsSet?rest:Math.min(rest,45),big:"Descanso",cd:true});grp++;
     }
   });
-  COOL.forEach(x=>{push({ph:"list",d:60,big:"Vuelta a la calma",txt:x,cd:true,cool:true});grp++});
+  pushEls(COOLSEQ,"Vuelta a la calma",{cool:true});
   if(!dry&&ses.target)fitExact(T,ses.target);
   finalizeT(T);
   return T;
 }
 function finalizeT(T){
-  for(let k=T.length-1,nx="Vuelta a la calma";k>=0;k--){const s=T[k];s.next=nx;if(s.ex&&s.ph!=="rest")nx=exName(s.ex.e,s.ex.p.vi)+(s.of>1?" · serie "+s.set+" de "+s.of:"");else if(s.ph==="run"||s.ph==="walk")nx=s.txt;else if(s.ph==="list")nx=s.big}
+  for(let k=T.length-1,nx="Vuelta a la calma";k>=0;k--){const s=T[k];s.next=nx;if(s.ex&&s.ph!=="rest")nx=exName(s.ex.e,s.ex.p.vi)+(s.of>1?" · serie "+s.set+" de "+s.of:"");else if(s.ph==="run"||s.ph==="walk")nx=s.txt;else if(s.ph==="list")nx=s.big;else if(s.title)nx=s.title}
   let c=0;T.forEach(s=>{s.at=c;c+=s.d});T.total=c;
 }
 /* Ajuste exacto a 30/45/60 min: estira descansos (hasta +35 %), añade movilidad y el último segundo lo absorbe la vuelta a la calma */
@@ -1251,7 +1266,7 @@ function fitExact(T,target){
     while(gap>=45){const d=Math.min(120,gap);T.splice(ci+k,0,{ph:"list",d,big:"Movilidad",txt:MOB[k%MOB.length],cd:true,grp:g0-.5+k*.01});gap-=d;k++}
     T[T.length-1].d+=gap;
   }else if(gap<0){
-    for(const s of T.filter(x=>x.ph==="list").reverse()){if(gap>=0)break;const cut=Math.min(s.d-15,-gap);if(cut>0){s.d-=cut;gap+=cut}}
+    for(const s of T.filter(x=>x.ph==="list"||(x.ph==="hold"&&(x.warm||x.cool))).reverse()){if(gap>=0)break;const cut=Math.min(s.d-15,-gap);if(cut>0){s.d-=cut;gap+=cut}}
   }
 }
 
