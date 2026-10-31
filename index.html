@@ -307,6 +307,10 @@ h2{font-family:var(--f-dsp);font-weight:400;font-size:26px;letter-spacing:.02em}
 .brand .wm{display:flex;align-items:center;gap:9px;color:#fff;text-decoration:none}
 .brand .wm svg{width:34px;height:34px;flex:none}
 .brand .wm b{font-family:var(--f-dsp);font-weight:400;font-size:27px;letter-spacing:.07em;font-style:italic;transform:skewX(-8deg);display:inline-block;line-height:1}
+.brand .rk{display:inline-flex;align-items:center;gap:4px;font-family:var(--f-dsp);font-size:14px;letter-spacing:.1em;text-transform:uppercase;color:#fff;background:#141B2B;border-radius:999px;padding:4px 10px 4px 6px;margin-left:auto;margin-right:10px}
+.rbar{height:10px;border-radius:999px;background:#141B2B;overflow:hidden}.rbar i{display:block;height:100%;background:linear-gradient(90deg,#5B8CFF,#2F5BFF);border-radius:999px}
+.rankup{position:fixed;inset:0;z-index:99;display:grid;place-items:center;background:rgba(6,9,18,.86);animation:fade 3s forwards}.rankup div{text-align:center}.rankup small{display:block;font-weight:800;letter-spacing:.2em;color:#9DBBFF;font-size:13px}.rankup b{font-family:var(--f-dsp);font-weight:400;font-size:64px;text-transform:uppercase;color:#fff}
+@keyframes fade{0%,80%{opacity:1}100%{opacity:0;visibility:hidden}}
 .brand .dt{font-family:var(--f-dsp);font-size:15px;letter-spacing:.12em;color:var(--fg2);text-transform:uppercase}
 .sess{position:relative;overflow:hidden;background:radial-gradient(90% 70% at 85% 30%,rgba(61,123,255,.28),transparent 62%),linear-gradient(180deg,#111A31,#070B16);border:0;border-radius:26px;padding:22px 20px 20px;min-height:430px;isolation:isolate}
 .sess .hero{position:absolute;right:-34px;top:34px;width:300px;height:340px;object-fit:contain;z-index:-1;opacity:.96;pointer-events:none;filter:drop-shadow(0 30px 40px rgba(0,0,0,.6))}
@@ -537,7 +541,7 @@ function addDays(s,n){const d=parse(s);d.setDate(d.getDate()+n);return iso(d)}
 const daysBetween=(a,b)=>Math.round((parse(b)-parse(a))/864e5);
 const dow=s=>(parse(s).getDay()+6)%7;
 const weekStartOf=s=>addDays(s,-dow(s));
-function defaults(){return{v:3,updated:0,settings:{start:todayISO(),exam:false,voice:true,dur:60,hora:"17:00"},dur:{},swap:{},noauto:{},maint:[],tests:{},pull:{},checkin:{},vol:{},volLog:{},pr:{},prlog:{},repSeen:{},ui:{},prog:{},run:{lv:1},logs:{},short:{},tired:{},equip:{dominadas:false,anillas:false,cargables:false,chaleco:false},forced:[],anchor:null,evald:{},live:null}}
+function defaults(){return{v:3,updated:0,settings:{start:todayISO(),exam:false,voice:true,sarge:true,dur:60,hora:"17:00"},dur:{},swap:{},noauto:{},maint:[],tests:{},pull:{},checkin:{},vol:{},volLog:{},pr:{},prlog:{},repSeen:{},ui:{},prog:{},run:{lv:1},logs:{},short:{},tired:{},equip:{dominadas:false,anillas:false,cargables:false,chaleco:false},forced:[],anchor:null,evald:{},live:null}}
 function migrate(s){
   if((s.v||0)<4){
     if(s.settings&&s.settings.start>="2026-10-26"&&s.settings.start<"2026-11-02")s.settings.start="2026-11-02";
@@ -1229,9 +1233,20 @@ const ICONS={
  progreso:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg>`,
  plan:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>`};
 const LOGO=`<svg viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="lgE" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5B8CFF"/><stop offset="1" stop-color="#2F4BFF"/></linearGradient></defs><rect width="40" height="40" rx="11" fill="url(#lgE)"/><path d="M9 26.6 20 15.6l11 11-3.6 3.6L20 22.8l-7.4 7.4z" fill="#fff"/><path d="M13.2 16.4 20 9.6l6.8 6.8-2.7 2.7L20 15l-4.1 4.1z" fill="#fff" opacity=".6"/></svg>`;
-const MANTRAS=["Hoy se gana.","Nadie lo hará por ti.","Una repetición más.","El plan no se negocia.","Disciplina antes que ganas.","Construye al atleta.","Sin atajos.","Cada serie cuenta.","Suda hoy, presume en verano.","La cabeza manda, el cuerpo sigue.","Más fuerte que ayer.","Hecho es mejor que perfecto."];
+const MANTRAS=["Hoy no se negocia, soldado.","El dolor pasa. Rendirse se queda.","Nadie te va a regalar nada.","Una más. Siempre una más.","Disciplina o nada.","Cumple la misión.","Sin quejas. Sin excusas.","Lo duro te hace fuerte.","Firmes. Ahora a trabajar.","Tu yo de mañana te lo agradecerá.","Aquí no se viene a mirar.","Se entrena con ganas o sin ganas."];
 function mantra(d){const n=Math.floor(parse(d).getTime()/864e5);return MANTRAS[((n%MANTRAS.length)+MANTRAS.length)%MANTRAS.length]}
-function brandBar(){const d=parse(todayISO());return`<header class="brand"><span class="wm">${LOGO}<b>ENTRENO</b></span><span class="dt">${DAYS_L[dow(todayISO())].slice(0,3)} ${d.getDate()} ${MONTHS[d.getMonth()].slice(0,3)}</span></header>`}
+const SG=(arr)=>arr[Math.floor(Math.random()*arr.length)];
+const sarge=()=>S.settings.sarge!==false;
+const SG_PREP=["¡En posición, soldado!","¡Arriba! A trabajar.","¡Sin excusas! Vamos.","¡Atención! Siguiente misión.","¡Firmes! Esto empieza ya."];
+const SG_REST=["¡Bien hecho, soldado!","¡Eso es! Ni un paso atrás.","¡Así se hace!","¡Correcto! Recupera."];
+const SG_LAST=["¡Última! ¡Aprieta!","¡Última! ¡Dámelo todo!","¡La última, soldado!"];
+const SG_TWO=["¡Dos más! ¡No te rindas!","¡Quedan dos! ¡Aguanta!","¡Dos! ¡Ni se te ocurra parar!"];
+const RANKS=[[0,"Recluta"],[3,"Soldado"],[8,"Cabo"],[15,"Cabo primero"],[25,"Sargento"],[40,"Sargento primero"],[60,"Teniente"],[85,"Capitán"],[120,"Comandante"],[160,"Coronel"],[220,"General"]];
+function doneCount(){return Object.values(S.logs||{}).filter(l=>l&&l.st==="done").length}
+function rankOf(n){let i=0;RANKS.forEach((r,k)=>{if(n>=r[0])i=k});const cur=RANKS[i],nx=RANKS[i+1];return{i,name:cur[1],next:nx?nx[1]:null,need:nx?nx[0]-n:0,pct:nx?Math.round(100*(n-cur[0])/(nx[0]-cur[0])):100}}
+function rankBadge(i){const n=Math.min(i,10),bars=Math.min(3,n%4||(n?3:0));return`<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">${n>=4?`<path d="M12 2.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 15.8 6.8 18.5l1-5.8L3.6 8.6l5.8-.8z" fill="#FFD23F"/>`:[0,1,2].slice(0,Math.max(1,bars)).map(k=>`<path d="M4 ${8+k*5}l8-4 8 4" fill="none" stroke="#5B8CFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>`).join("")}</svg>`}
+function rankCard(){const n=doneCount(),r=rankOf(n);return`<div class="card rank"><div class="topbar"><div><div class="eyebrow">Tu rango</div><h2 style="font-size:34px">${rankBadge(r.i)} ${r.name}</h2></div><span class="chip">${n} misiones</span></div><div class="rbar"><i style="width:${r.pct}%"></i></div><p class="sub" style="font-size:13px">${r.next?`Te faltan <b>${r.need}</b> entrenos para ascender a <b>${r.next}</b>.`:"Rango máximo. Ahora a mantenerlo."}</p></div>`}
+function brandBar(){const d=parse(todayISO());const rk=rankOf(doneCount());return`<header class="brand"><span class="wm">${LOGO}<b>ENTRENO</b></span><span class="rk">${rankBadge(rk.i)}${rk.name}</span><span class="dt">${DAYS_L[dow(todayISO())].slice(0,3)} ${d.getDate()} ${MONTHS[d.getMonth()].slice(0,3)}</span></header>`}
 function render(){
   if(tab==="ajustes")tab="plan";
   document.querySelectorAll(".tab").forEach(b=>b.setAttribute("aria-current",b.dataset.tab===tab?"page":"false"));
@@ -1331,7 +1346,8 @@ function vPlan(){
    <div class="card"><div class="field"><h3>Duración por defecto</h3><div class="seg" role="group">${[30,45,60].map(m=>`<button data-defmin="${m}" aria-pressed="${(S.settings.dur||60)===m}">${m} min</button>`).join("")}</div><p class="sub" style="font-size:13px">La sesión dura exactamente eso.</p></div>
      <div class="field" style="margin-top:14px"><h3>Hora del entreno</h3><input type="time" data-hora value="${esc(S.settings.hora||"17:00")}" style="font:inherit;font-size:17px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--s2);color:var(--fg)"><p class="sub" style="font-size:13px">Igual que en Focus OS: cada día de ${hhmm(horaIni())} a ${hhmm(horaIni()+60)} (1 hora). En la semana de exámenes, 30 min y la otra media hora es para estudiar. Focus OS te avisa 10 min antes si importas su calendario.</p></div></div>
    <div class="card"><div class="toggle"><div><h3>Esta semana es de exámenes</h3><p class="sub" style="font-size:13px">Mantenimiento: lunes, miércoles y viernes 30 min de cuerpo completo; el resto, paseo. No cuenta como semana del plan.</p></div><button class="switch" data-act="maint" aria-pressed="${(S.maint||[]).includes(ws)}" aria-label="Semana de exámenes"></button></div>
-     <div class="toggle"><div><h3>Voz</h3><p class="sub" style="font-size:13px">Repeticiones, descansos y lo que viene.</p></div>${sw("voice",S.settings.voice)}</div></div>
+     <div class="toggle"><div><h3>Voz</h3><p class="sub" style="font-size:13px">Repeticiones, descansos y lo que viene.</p></div>${sw("voice",S.settings.voice)}</div>
+     <div class="toggle"><div><h3>Modo sargento</h3><p class="sub" style="font-size:13px">La voz te habla como un instructor militar: órdenes, presión en las últimas repeticiones y ascensos de rango.</p></div>${sw("sarge",S.settings.sarge!==false)}</div></div>
    <div class="card"><h3>Tu material</h3>
      <div class="toggle"><div><b>Barra de dominadas</b><p class="sub" style="font-size:13px">Dominadas y elevaciones colgado.</p></div>${swq("dominadas")}</div>
      <div class="toggle"><div><b>Anillas</b><p class="sub" style="font-size:13px">Fondos y remos en anillas.</p></div>${swq("anillas")}</div>
@@ -1366,6 +1382,7 @@ function vProgreso(){
   const prs=Object.entries(S.pr).filter(([,p])=>p.d).sort((a,b)=>b[1].d.localeCompare(a[1].d)).slice(0,8);
   return`<section class="view"><div><div class="eyebrow">Tu evolución</div><h1>Progreso</h1></div>
    <div class="hero-stats"><div class="hs acc"><span class="num">${cs.count}</span><span>entrenos</span></div><div class="hs"><span class="num">${cs.total}</span><span>semanas cumplidas</span></div><div class="hs"><span class="num">${cs.streak}</span><span>racha de semanas</span></div></div>
+   ${rankCard()}
    <div class="card"><div class="topbar"><h2>Constancia</h2><span class="chip">${cs.now}/5 esta semana</span></div><div class="weeks">${sq.join("")}</div><p class="sub" style="font-size:13px">Una semana se cumple con 5 sesiones: tienes 2 comodines. Un día perdido nunca borra lo hecho.</p></div>
    <div class="card"><h2>Nivel de atleta</h2><div class="lvls">${lv.map(([g,n])=>`<div class="lvl"><span>${GROUP_TXT[g]}</span><span class="bar">${Array.from({length:10},(_,k)=>`<i class="${k<n?"on":""}"></i>`).join("")}</span><span class="num">${n}</span></div>`).join("")}</div><p class="sub" style="font-size:13px">Sube al desbloquear variantes y repeticiones en cada patrón. Motor = nivel de carrera.</p></div>
    <div class="card"><h2>Récords</h2>${prs.length?`<div class="prs">${prs.map(([id,p])=>{ensureEx(id);const e=EX[id];return`<button class="row" data-ex="${id}"><span class="thumb">${thumbFig(id)}</span><div style="min-width:0"><div class="row-n">${esc(exName(e,Math.min(p.vi,e.v.length-1)))}</div><div class="row-c">${parse(p.d).getDate()} ${MONTHS[parse(p.d).getMonth()]}${p.kg?" · +"+kgTxt(p.kg)+" kg":""}</div></div><div class="row-t"><span class="num">${p.t}</span><small>${unitShort(e)}</small></div></button>`}).join("")}</div>`:`<p class="empty">Tus mejores marcas aparecerán aquí. Durante el entreno saltan en directo cuando superas la anterior.</p>`}</div>
@@ -1608,19 +1625,19 @@ function endSeg(s,quiet){
   if(s.rateId&&!G.r[s.rateId]&&!G.pend.includes(s.rateId))G.pend.push(s.rateId);
 }
 function enterSeg(prev){
-  const s=G.T[G.idx];G.beeped={};
+  const s=G.T[G.idx];G.beeped={};try{if(navigator.vibrate)navigator.vibrate(s.ph==="rest"?[70,50,70]:s.ph==="prep"?[40,40,40]:35)}catch(e){}
   if(!prev||prev.grp!==s.grp)persistLive();
   scheduleSeg(s,prev);
   const name=s.ex?exName(s.ex.e,s.ex.p.vi):"";
   const durTxt=d0=>{const d=Math.round(d0/5)*5||d0;if(d<60)return d+" segundos";const m=Math.floor(d/60),r=d%60,mt=m===1?"un minuto":m+" minutos";return r===30?mt+" y medio":r?mt+" y "+r+" segundos":mt};
   const reps=x=>{const t=targetOf(x);return t+" "+unitWord(x.e)+(SIDE[x.e.u]?" por "+SIDE[x.e.u]:"")};
   if(s.ph==="switch"&&s.big.startsWith("Cambia de")){const nx=G.T[G.idx+1];flashSide(nx&&nx.label?nx.label:s.big);say(nx&&nx.label?nx.label:s.big,{urgent:1})}
-  else if(s.ph==="prep")say(`${name}. ${reps(s.ex)}${s.of>1?", serie "+s.set+" de "+s.of:""}. ${s.set===1?tempoSpoken(s.ex):""}`,{urgent:1});
+  else if(s.ph==="prep")say(`${sarge()&&s.set===1?SG(SG_PREP)+" ":""}${name}. ${reps(s.ex)}${s.of>1?", serie "+s.set+" de "+s.of:""}. ${s.set===1?tempoSpoken(s.ex):""}`,{urgent:1});
   else if(s.ph==="switch")say("Cambia a "+name+". "+reps(s.ex)+".",{urgent:1});
   else if(s.ph==="rest"&&!s.mini){
     const remain=Math.round((G.T.total-s.at-s.d)/60),slot=Math.floor(remain/10);let extra="";
     if(G.lastSlot!==undefined&&slot<G.lastSlot&&remain>3)extra=" Quedan "+remain+" minutos de sesión.";G.lastSlot=slot;
-    say("Bien. Descansa "+durTxt(s.d)+". Luego, "+s.next.split(" · ")[0]+"."+extra);
+    say((sarge()?SG(SG_REST):"Bien.")+" Descansa "+durTxt(s.d)+". Luego, "+s.next.split(" · ")[0]+"."+extra);
   }
   else if(s.ph==="rest"&&s.mini)say(s.seqn?"Descansa":"Respira",{skip:1});
   else if(s.ph==="hold"&&s.title)say(s.title.split(" · ")[0]+(s.label?", "+s.label.toLowerCase():"")+". "+durTxt(s.d)+".",{urgent:1});
@@ -1631,8 +1648,8 @@ function enterSeg(prev){
     /* Primera repetición: se nombra la fase; después, solo el número, como un entrenador contando */
     const w=(SPOKEN[s.big]||s.big).toLowerCase();
     if(s.rep===1)say((s.label&&/Lado|Pierna|Brazo|Mini|Activ/.test(s.label)?s.label+". ":"")+"Uno, "+w,{urgent:1});
-    else if(s.rep===s.reps)say("Última",{skip:1});
-    else if(s.reps-s.rep===2&&s.reps>=8)say(s.rep+", quedan dos",{skip:1});
+    else if(s.rep===s.reps)say(sarge()?SG(SG_LAST):"Última",{skip:1});
+    else if(s.reps-s.rep===2&&s.reps>=8)say(sarge()?SG(SG_TWO):s.rep+", quedan dos",{skip:1});
     else say(String(s.rep),{skip:1});
   }
   drawGo();
@@ -1649,7 +1666,7 @@ function skipNext(){const g=G.T[G.idx].grp,k=G.T.findIndex(s=>s.grp>g);if(k<0)to
 function skipPrev(){const g=G.T[G.idx].grp,start=G.T.findIndex(s=>s.grp===g),el=(Date.now()-G.segStart)/1000;
   if(G.idx>start||el>2)jump(start);else{const pg=G.T.slice(0,start).reverse().find(s=>s.ph!=="rest");if(pg)jump(G.T.findIndex(s=>s.grp===pg.grp))}}
 function togglePause(){
-  if(G.paused){G.segStart+=Date.now()-G.pauseAt;G.paused=false;unlockAudio();scheduleSeg(G.T[G.idx],{cd:true});say("Seguimos",{urgent:1})}
+  if(G.paused){G.segStart+=Date.now()-G.pauseAt;G.paused=false;unlockAudio();scheduleSeg(G.T[G.idx],{cd:true});say(sarge()?"¡Seguimos! Aquí nadie se rinde.":"Seguimos",{urgent:1})}
   else{G.paused=true;G.pauseAt=Date.now();clearSched();try{speechSynthesis.cancel()}catch(e){}}
   const go=document.querySelector(".go");if(go)go.classList.toggle("paused",G.paused);
   const b=document.getElementById("pp");if(b)b.innerHTML=G.paused?ICON_PLAY:ICON_PAUSE,b&&b.setAttribute("aria-label",G.paused?"Seguir":"Pausar");
@@ -1743,7 +1760,7 @@ function drawGo(){
 
 function toReview(){
   clearSched();clearInterval(tick);G.review=true;try{speechSynthesis.cancel()}catch(e){}
-  beep(880,120);setTimeout(()=>beep(1175,260),170);say("Sesión terminada. Rellena la encuesta.");
+  beep(880,120);setTimeout(()=>beep(1175,260),170);say(sarge()?"¡Misión cumplida, soldado! Rellena el informe.":"Sesión terminada. Rellena la encuesta.");
   const min=Math.max(1,Math.round((Date.now()-G.t0)/60000));
   const d=G.date,ses=G.ses,r=G.r,prs=G.prs.slice();G=null;releaseAwake();
   openSurvey(d,ses,r,min,prs);
@@ -1927,6 +1944,9 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!G)closeSheet()});
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&G){keepAwake();if(actx&&actx.state==="suspended")actx.resume()}});
 
 evaluateWeeks();
+{const _fs=finishSession;finishSession=function(){const b=rankOf(doneCount()).i,r=_fs.apply(this,arguments),a=rankOf(doneCount());
+  if(a.i>b){const d=document.createElement("div");d.className="rankup";d.innerHTML=`<div>${rankBadge(a.i).replace('width="18" height="18"','width="64" height="64"')}<small>ASCENSO</small><b>${a.name}</b></div>`;document.body.appendChild(d);setTimeout(()=>d.remove(),3200);
+    if(sarge())setTimeout(()=>say("¡Ascenso! A partir de hoy eres "+a.name.toLowerCase()+". ¡Firmes!",{urgent:1}),900)}return r}}
 render();
 
 /* ============ Sincronización con la cuenta ============ */
